@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: adocao-api
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/adocao_db
+    username: adocao_user
+    password: adocao_pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+app:
+  jwt:
+    secret: "troque-esta-chave-secreta-em-producao-para-uma-string-bem-longa-e-aleatoria"
+    expiration-ms: 86400000 # 24h
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    com.adocao: INFO
