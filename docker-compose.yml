@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: adocao-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: adocao_db
+      POSTGRES_USER: adocao_user
+      POSTGRES_PASSWORD: adocao_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d adocao_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./adocao-api
+      dockerfile: Dockerfile
+    container_name: adocao-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/adocao_db
+      SPRING_DATASOURCE_USERNAME: adocao_user
+      SPRING_DATASOURCE_PASSWORD: adocao_pass
+    ports:
+      - "8080:8080"
+
+  frontend-adotante:
+    build:
+      context: ./frontend-adotante
+      dockerfile: Dockerfile
+      args:
+        # Ajuste para http://localhost:8080/api caso seu .env.example tenha /api no final
+        VITE_API_URL: http://localhost:8080/api
+    container_name: adocao-frontend-adotante
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+
+  frontend-ong:
+    build:
+      context: ./frontend-ong
+      dockerfile: Dockerfile
+      args:
+        # Ajuste para http://localhost:8080/api caso seu .env.example tenha /api no final
+        VITE_API_URL: http://localhost:8080/api
+    container_name: adocao-frontend-ong
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "5174:80"
+
+volumes:
+  postgres_data:
